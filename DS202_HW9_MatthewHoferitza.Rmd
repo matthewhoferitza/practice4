@@ -1,0 +1,38 @@
+---
+title: "Homework 9"
+author: "Matthew Hoferitza"
+date: "4/11/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+**Team Members:** Matthew Hoferitza 
+
+## Data Tidying
+```{r}
+av <- read.csv("https://raw.githubusercontent.com/fivethirtyeight/data/master/avengers/avengers.csv", stringsAsFactors = FALSE)
+
+av_new <- av %>% gather(key = Time, value = Death, c(11, 13, 15, 17, 19)) %>% 
+  mutate(Time=parse_number(Time))
+av_new <- av_new %>% gather(key = Time2, value = Return, 11:15) %>%
+  select(-Time2)
+av_final <- av_new %>%
+  group_by(URL, Time) %>%
+  summarise_each(funs(first(na.omit(.))))
+head(av_final %>% select(Name.Alias, Time, Death, Return))
+```
+
+## Validation
+```{r}
+never_die <- av_final%>% group_by(Name.Alias) %>% filter(Time == 1 & Death == 
+                                                           "NO")
+cat("The number of characters that have died at least once is", dim(av)[1] - dim(never_die)[1])
+cat("The proportion of characters that never died is", dim(never_die)[1]/dim(av)[1])
+cat("The total number of deaths is", sum(av_final$Death == "YES"))
+```
+
+*The statements made in the article that I evaluated passed the fact check; I arrived at the same results for number of total deaths and number of characters that have died at least once.*
